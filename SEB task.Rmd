@@ -1,0 +1,84 @@
+---
+title: "SEB task"
+author: "Juras Lukaševičius"
+date: "2024-06-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This task was completed for the **Quantitative Analyst in Credit Risk Model Validation** position in **SEB**. The solution, alongside a description of results and code, are provided in [this repository](https://github.com/SailorGeorge/SEB--Juras-Lukasevicius). The task was completed by **Juras Lukaševičius** using *R*.
+
+You can read this code on the *.html* file to use hyperlinks.
+
+Thanks for reading!
+
+## Table of contents
+
+1. [Task outline](#task-outline)
+2. [Data manipulation](#item-two)
+3. [Data visualization](#item-two)
+4. [Modelling](#item-three)
+
+## Task outline
+
+Complete the task described in this e-mail.  All three parts could be done independent of each other. You are free to choose which task to perform in detail and which one to use in order to demonstrate basic skills. Choose software which is convenient for you (*R*, *Python*, *SAS*, *Tableau*, …). Please provide description of results  and codes as well (GitHub/GitLab or e-mail). If you have any questions, do not hesitate to contact.
+
+**Data manipulation task**
+
+Demonstrate your ability to:  
+
+
+- select random subsample of data set;  
+- filter desired rows using simple and more complex conditions;  
+- drop unnecessary variables, rename some variables;  
+- calculate summarizing statistics (for full sample and by categorical variables as well);  
+- create new variables using simple transformation and custom functions;  
+- order data set by several variables. 
+
+**Data visualization task**
+
+In order to understand the data, please visualize it. You are free to select the scope, types of plots, etc.  
+
+**Modelling task** (with response variable *y*)
+
+- Perform a logistic regression to obtain the predicted probability that a customer has subscribed for a term deposit.  
+- Use continuous variables and dummy variables created for categorical columns. Not necessarily all variables provided in the data sample should be used.  
+- Evaluate model goodness of fit and predictive ability. If needed, data set could be split into training and test sets.
+
+
+
+
+<a id="item-one"></a>
+
+## Data manipulation
+
+**Select a random subsample of data set**
+
+Before starting the three given tasks, I load the testing and full data sets into *R*. 
+
+```{r }
+ dt <- read.table("bank.csv", header = TRUE, sep=";")
+ d <- read.table("bank-full.csv", header = TRUE, sep=";")
+ 
+ head(dt) 
+```
+
+To collect a random subsample from a dataset, I use the function `sample()`.
+
+```{r }
+
+```
+
+<a id="item-two"></a>
+
+## Data visualization
+
+
+
+<a id="item-three"></a>
+
+## Modelling
+
