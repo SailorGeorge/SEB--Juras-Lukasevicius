@@ -15,14 +15,14 @@ You can read this code on the *.html* file to use hyperlinks.
 
 Thanks for reading!
 
-## Table of contents
+### Table of contents
 
 1. [Task outline](#task-outline)
-2. [Data manipulation](#item-two)
+2. [Data manipulation](#item-one)
 3. [Data visualization](#item-two)
 4. [Modelling](#item-three)
 
-## Task outline
+### Task outline
 
 Complete the task described in this e-mail.  All three parts could be done independent of each other. You are free to choose which task to perform in detail and which one to use in order to demonstrate basic skills. Choose software which is convenient for you (*R*, *Python*, *SAS*, *Tableau*, …). Please provide description of results  and codes as well (GitHub/GitLab or e-mail). If you have any questions, do not hesitate to contact.
 
@@ -53,32 +53,123 @@ In order to understand the data, please visualize it. You are free to select the
 
 <a id="item-one"></a>
 
-## Data manipulation
+### Data manipulation
 
-**Select a random subsample of data set**
+Before starting the three given tasks, I load the testing and full data sets into *R*. I also load the libraries which will be later used while working on the data.
 
-Before starting the three given tasks, I load the testing and full data sets into *R*. 
-
-```{r }
+```{r}
  dt <- read.table("bank.csv", header = TRUE, sep=";")
  d <- read.table("bank-full.csv", header = TRUE, sep=";")
  
  head(dt) 
 ```
 
-To collect a random subsample from a dataset, I use the function `sample()`.
+```{r message=FALSE}
+ library(dplyr) # For data manipulation
+```
+
+**Select a random subsample of data set**
+
+To collect a random subsample from a dataset, I use the function `sample()`. Before generating, I set a custom seed to replicate the sample selection on every initialization. `n` shows the number of rows in the sampled data.
 
 ```{r }
+set.seed(42)
+n <- 200
 
+dt_s <- dt[sample(nrow(dt), n),] # Subsample of data set
+head(dt_s)
 ```
+
+**Filter desired rows using simple and more complex conditions**
+
+First I will complete a simple filtering by selecting rows with `single` marital status. I will apply this to the sampled data set.
+
+```{r }
+head(dt_s[dt_s$marital == "single",])
+```
+
+For a more complex filtering, I will select rows with `single` marital status and balance between $1000$ and $5000$.
+
+```{r }
+head(dt_s[dt_s$marital == "single" & dt_s$balance >= 1000 & dt_s$balance <= 5000,])
+```
+
+**Drop unnecessary variables, rename some variables**
+
+I will drop the date variables and rename the `marital` and `education` variables into their shortened versions `mar` and `edu`.
+
+```{r }
+dt_s <- subset(dt_s, select = -c(day, month)) 
+dt_s <- dt_s %>% 
+       rename("edu" = "education", "mar" = "marital")
+
+head(dt_s)
+```
+
+**Calculate summarizing statistics (for full sample and by categorical variables as well)**
+
+To acquire summarizing statistics for the full sample, I can simply use the function `summary()`. To add summarizing statistics by categorical variables, I can change such variables into factors to see which ones are most frequent. For this, I use the `dplyr` transformation `mutate_if()`.
+
+```{r }
+dt <- dt %>%
+  mutate_if(is.character, as.factor)
+
+summary(dt)
+```
+
+Here we can find the mean, median, min and max, alongside the first and third quartiles of all numeric variables. For categorical variables, we can see the number of occurrences of each value in the variable. 
+
+**Create new variables using simple transformation and custom functions**
+
+I'll create two variables for the full sample: one will be a simple transformation, which shows if the average yearly balance is above 1000; the other will combine the `month` and `day` variables into one `date` variable using a custom function.
+
+```{r }
+dt <- dt %>%
+  mutate(balance1000 = ifelse(balance > 1000, "yes", "no"))
+```
+
+To create the `date` variable, I first make a function which changes the `month` value into an integer and combines it with the `day` variable. I use the `paste()` function to add a seperator and fit the factorized `month` value into a string.
+
+```{r }
+mon_day <- function(month, day) {
+  
+  month_lookup <- c("jan" = "01", "feb" = "02", "mar" = "03", 
+                    "apr" = "04", "may" = "05", "jun" = "06",
+                    "jul" = "07", "aug" = "08", "sep" = "09", 
+                    "oct" = "10", "nov" = "11", "dec" = "12")
+  
+  # This part changes the month into an integer through the lookup vector
+  month_num <- sapply(month, function(x) month_lookup[[x]])
+  
+  return(paste(month_num, day, sep = "-"))
+}
+
+dt <- dt %>%
+  mutate(date = mon_day(paste(month), day))
+
+head(dt)
+```
+
+
+**Order data set by several variables**
+
+I will order the values by the newly created variable `date` and `age` using the function `arrange()`.
+
+```{r }
+dt_ord <- dt %>%
+  arrange(date, age)
+
+head(dt_ord)
+```
+
 
 <a id="item-two"></a>
 
-## Data visualization
+### Data visualization
 
 
 
 <a id="item-three"></a>
 
-## Modelling
+### Modelling
 

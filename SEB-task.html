@@ -366,17 +366,17 @@ Lukaševičius</strong> using <em>R</em>.</p>
 <p>You can read this code on the <em>.html</em> file to use
 hyperlinks.</p>
 <p>Thanks for reading!</p>
-<div id="table-of-contents" class="section level2">
-<h2>Table of contents</h2>
+<div id="table-of-contents" class="section level3">
+<h3>Table of contents</h3>
 <ol style="list-style-type: decimal">
 <li><a href="#task-outline">Task outline</a></li>
-<li><a href="#item-two">Data manipulation</a></li>
+<li><a href="#item-one">Data manipulation</a></li>
 <li><a href="#item-two">Data visualization</a></li>
 <li><a href="#item-three">Modelling</a></li>
 </ol>
 </div>
-<div id="task-outline" class="section level2">
-<h2>Task outline</h2>
+<div id="task-outline" class="section level3">
+<h3>Task outline</h3>
 <p>Complete the task described in this e-mail. All three parts could be
 done independent of each other. You are free to choose which task to
 perform in detail and which one to use in order to demonstrate basic
@@ -419,11 +419,11 @@ data set could be split into training and test sets.</li>
 </ul>
 <p><a id="item-one"></a></p>
 </div>
-<div id="data-manipulation" class="section level2">
-<h2>Data manipulation</h2>
-<p><strong>Select a random subsample of data set</strong></p>
+<div id="data-manipulation" class="section level3">
+<h3>Data manipulation</h3>
 <p>Before starting the three given tasks, I load the testing and full
-data sets into <em>R</em>.</p>
+data sets into <em>R</em>. I also load the libraries which will be later
+used while working on the data.</p>
 <pre class="r"><code> dt &lt;- read.table(&quot;bank.csv&quot;, header = TRUE, sep=&quot;;&quot;)
  d &lt;- read.table(&quot;bank-full.csv&quot;, header = TRUE, sep=&quot;;&quot;)
  
@@ -442,16 +442,214 @@ data sets into <em>R</em>.</p>
 ## 4   jun      199        4    -1        0  unknown no
 ## 5   may      226        1    -1        0  unknown no
 ## 6   feb      141        2   176        3  failure no</code></pre>
+<pre class="r"><code> library(dplyr) # For data manipulation</code></pre>
+<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 4.3.3</code></pre>
+<p><strong>Select a random subsample of data set</strong></p>
 <p>To collect a random subsample from a dataset, I use the function
-<code>sample()</code>.</p>
+<code>sample()</code>. Before generating, I set a custom seed to
+replicate the sample selection on every initialization. <code>n</code>
+shows the number of rows in the sampled data.</p>
+<pre class="r"><code>set.seed(42)
+n &lt;- 200
+
+dt_s &lt;- dt[sample(nrow(dt), n),] # Subsample of data set
+head(dt_s)</code></pre>
+<pre><code>##      age         job  marital education default balance housing loan  contact
+## 2609  58     retired  married secondary      no      11      no   no cellular
+## 4069  30 blue-collar   single secondary      no    6900      no   no cellular
+## 2369  35    services  married secondary      no     195     yes   no cellular
+## 1098  45  management divorced  tertiary      no    2096      no   no cellular
+## 1252  44      admin.  married secondary      no    2403     yes   no cellular
+## 634   83     retired  married secondary      no       0      no   no cellular
+##      day month duration campaign pdays previous poutcome  y
+## 2609  11   aug      270        1    -1        0  unknown no
+## 4069  21   nov      816        1    -1        0  unknown no
+## 2369  17   apr      203        1    -1        0  unknown no
+## 1098  21   nov      127        1   100        2  failure no
+## 1252  28   jan      180        2    -1        0  unknown no
+## 634   18   mar      140       10    -1        0  unknown no</code></pre>
+<p><strong>Filter desired rows using simple and more complex
+conditions</strong></p>
+<p>First I will complete a simple filtering by selecting rows with
+<code>single</code> marital status. I will apply this to the sampled
+data set.</p>
+<pre class="r"><code>head(dt_s[dt_s$marital == &quot;single&quot;,])</code></pre>
+<pre><code>##      age         job marital education default balance housing loan   contact
+## 4069  30 blue-collar  single secondary      no    6900      no   no  cellular
+## 356   30    services  single secondary      no     209     yes   no   unknown
+## 4261  50   housemaid  single   unknown      no       0      no   no telephone
+## 1903  34  technician  single secondary      no     318      no  yes  cellular
+## 3944  45    services  single secondary      no    1757     yes   no  cellular
+## 481   37  management  single   unknown      no     715     yes   no   unknown
+##      day month duration campaign pdays previous poutcome  y
+## 4069  21   nov      816        1    -1        0  unknown no
+## 356    6   may       30        2    -1        0  unknown no
+## 4261  28   jul      118        8    -1        0  unknown no
+## 1903  25   jul      239        5    -1        0  unknown no
+## 3944  20   apr     1010        3   326        1    other no
+## 481   20   may      247        2    -1        0  unknown no</code></pre>
+<p>For a more complex filtering, I will select rows with
+<code>single</code> marital status and balance between <span class="math inline">\(1000\)</span> and <span class="math inline">\(5000\)</span>.</p>
+<pre class="r"><code>head(dt_s[dt_s$marital == &quot;single&quot; &amp; dt_s$balance &gt;= 1000 &amp; dt_s$balance &lt;= 5000,])</code></pre>
+<pre><code>##      age         job marital education default balance housing loan   contact
+## 3944  45    services  single secondary      no    1757     yes   no  cellular
+## 982   28 blue-collar  single secondary      no    3412     yes   no  cellular
+## 1353  23     student  single secondary      no    1021      no   no telephone
+## 1537  32  technician  single secondary      no    2979      no   no  cellular
+## 4407  35  unemployed  single secondary      no    2116     yes   no  cellular
+## 2859  33  management  single secondary      no    1558     yes   no  cellular
+##      day month duration campaign pdays previous poutcome  y
+## 3944  20   apr     1010        3   326        1    other no
+## 982   15   may       22        4    -1        0  unknown no
+## 1353  19   jun       79        9    -1        0  unknown no
+## 1537  25   may      156        1    -1        0  unknown no
+## 4407  13   may      409        2    -1        0  unknown no
+## 2859  17   apr       97        1    -1        0  unknown no</code></pre>
+<p><strong>Drop unnecessary variables, rename some
+variables</strong></p>
+<p>I will drop the date variables and rename the <code>marital</code>
+and <code>education</code> variables into their shortened versions
+<code>mar</code> and <code>edu</code>.</p>
+<pre class="r"><code>dt_s &lt;- subset(dt_s, select = -c(day, month)) 
+dt_s &lt;- dt_s %&gt;% 
+       rename(&quot;edu&quot; = &quot;education&quot;, &quot;mar&quot; = &quot;marital&quot;)
+
+head(dt_s)</code></pre>
+<pre><code>##      age         job      mar       edu default balance housing loan  contact
+## 2609  58     retired  married secondary      no      11      no   no cellular
+## 4069  30 blue-collar   single secondary      no    6900      no   no cellular
+## 2369  35    services  married secondary      no     195     yes   no cellular
+## 1098  45  management divorced  tertiary      no    2096      no   no cellular
+## 1252  44      admin.  married secondary      no    2403     yes   no cellular
+## 634   83     retired  married secondary      no       0      no   no cellular
+##      duration campaign pdays previous poutcome  y
+## 2609      270        1    -1        0  unknown no
+## 4069      816        1    -1        0  unknown no
+## 2369      203        1    -1        0  unknown no
+## 1098      127        1   100        2  failure no
+## 1252      180        2    -1        0  unknown no
+## 634       140       10    -1        0  unknown no</code></pre>
+<p><strong>Calculate summarizing statistics (for full sample and by
+categorical variables as well)</strong></p>
+<p>To acquire summarizing statistics for the full sample, I can simply
+use the function <code>summary()</code>. To add summarizing statistics
+by categorical variables, I can change such variables into factors to
+see which ones are most frequent. For this, I use the <code>dplyr</code>
+transformation <code>mutate_if()</code>.</p>
+<pre class="r"><code>dt &lt;- dt %&gt;%
+  mutate_if(is.character, as.factor)
+
+summary(dt)</code></pre>
+<pre><code>##       age                 job          marital         education    default   
+##  Min.   :19.00   management :969   divorced: 528   primary  : 678   no :4445  
+##  1st Qu.:33.00   blue-collar:946   married :2797   secondary:2306   yes:  76  
+##  Median :39.00   technician :768   single  :1196   tertiary :1350             
+##  Mean   :41.17   admin.     :478                   unknown  : 187             
+##  3rd Qu.:49.00   services   :417                                              
+##  Max.   :87.00   retired    :230                                              
+##                  (Other)    :713                                              
+##     balance      housing     loan           contact          day       
+##  Min.   :-3313   no :1962   no :3830   cellular :2896   Min.   : 1.00  
+##  1st Qu.:   69   yes:2559   yes: 691   telephone: 301   1st Qu.: 9.00  
+##  Median :  444                         unknown  :1324   Median :16.00  
+##  Mean   : 1423                                          Mean   :15.92  
+##  3rd Qu.: 1480                                          3rd Qu.:21.00  
+##  Max.   :71188                                          Max.   :31.00  
+##                                                                        
+##      month         duration       campaign          pdays       
+##  may    :1398   Min.   :   4   Min.   : 1.000   Min.   : -1.00  
+##  jul    : 706   1st Qu.: 104   1st Qu.: 1.000   1st Qu.: -1.00  
+##  aug    : 633   Median : 185   Median : 2.000   Median : -1.00  
+##  jun    : 531   Mean   : 264   Mean   : 2.794   Mean   : 39.77  
+##  nov    : 389   3rd Qu.: 329   3rd Qu.: 3.000   3rd Qu.: -1.00  
+##  apr    : 293   Max.   :3025   Max.   :50.000   Max.   :871.00  
+##  (Other): 571                                                   
+##     previous          poutcome      y       
+##  Min.   : 0.0000   failure: 490   no :4000  
+##  1st Qu.: 0.0000   other  : 197   yes: 521  
+##  Median : 0.0000   success: 129             
+##  Mean   : 0.5426   unknown:3705             
+##  3rd Qu.: 0.0000                            
+##  Max.   :25.0000                            
+## </code></pre>
+<p>Here we can find the mean, median, min and max, alongside the first
+and third quartiles of all numeric variables. For categorical variables,
+we can see the number of occurrences of each value in the variable.</p>
+<p><strong>Create new variables using simple transformation and custom
+functions</strong></p>
+<p>I’ll create two variables for the full sample: one will be a simple
+transformation, which shows if the average yearly balance is above 1000;
+the other will combine the <code>month</code> and <code>day</code>
+variables into one <code>date</code> variable using a custom
+function.</p>
+<pre class="r"><code>dt &lt;- dt %&gt;%
+  mutate(balance1000 = ifelse(balance &gt; 1000, &quot;yes&quot;, &quot;no&quot;))</code></pre>
+<p>To create the <code>date</code> variable, I first make a function
+which changes the <code>month</code> value into an integer and combines
+it with the <code>day</code> variable. I use the <code>paste()</code>
+function to add a seperator and fit the factorized <code>month</code>
+value into a string.</p>
+<pre class="r"><code>mon_day &lt;- function(month, day) {
+  
+  month_lookup &lt;- c(&quot;jan&quot; = &quot;01&quot;, &quot;feb&quot; = &quot;02&quot;, &quot;mar&quot; = &quot;03&quot;, 
+                    &quot;apr&quot; = &quot;04&quot;, &quot;may&quot; = &quot;05&quot;, &quot;jun&quot; = &quot;06&quot;,
+                    &quot;jul&quot; = &quot;07&quot;, &quot;aug&quot; = &quot;08&quot;, &quot;sep&quot; = &quot;09&quot;, 
+                    &quot;oct&quot; = &quot;10&quot;, &quot;nov&quot; = &quot;11&quot;, &quot;dec&quot; = &quot;12&quot;)
+  
+  # This part changes the month into an integer through the lookup vector
+  month_num &lt;- sapply(month, function(x) month_lookup[[x]])
+  
+  return(paste(month_num, day, sep = &quot;-&quot;))
+}
+
+dt &lt;- dt %&gt;%
+  mutate(date = mon_day(paste(month), day))
+
+head(dt)</code></pre>
+<pre><code>##   age         job marital education default balance housing loan  contact day
+## 1  30  unemployed married   primary      no    1787      no   no cellular  19
+## 2  33    services married secondary      no    4789     yes  yes cellular  11
+## 3  35  management  single  tertiary      no    1350     yes   no cellular  16
+## 4  30  management married  tertiary      no    1476     yes  yes  unknown   3
+## 5  59 blue-collar married secondary      no       0     yes   no  unknown   5
+## 6  35  management  single  tertiary      no     747      no   no cellular  23
+##   month duration campaign pdays previous poutcome  y balance1000  date
+## 1   oct       79        1    -1        0  unknown no         yes 10-19
+## 2   may      220        1   339        4  failure no         yes 05-11
+## 3   apr      185        1   330        1  failure no         yes 04-16
+## 4   jun      199        4    -1        0  unknown no         yes  06-3
+## 5   may      226        1    -1        0  unknown no          no  05-5
+## 6   feb      141        2   176        3  failure no          no 02-23</code></pre>
+<p><strong>Order data set by several variables</strong></p>
+<p>I will order the values by the newly created variable
+<code>date</code> and <code>age</code> using the function
+<code>arrange()</code>.</p>
+<pre class="r"><code>dt_ord &lt;- dt %&gt;%
+  arrange(date, age)
+
+head(dt_ord)</code></pre>
+<pre><code>##   age           job marital education default balance housing loan   contact
+## 1  57       retired married secondary      no    1044      no   no telephone
+## 2  28 self-employed  single  tertiary      no    4579      no   no  cellular
+## 3  65       unknown married   unknown      no     300      no   no  cellular
+## 4  48    unemployed married secondary      no     817      no   no  cellular
+## 5  50    management married  tertiary      no      78     yes   no  cellular
+## 6  59    technician married   primary      no    4198      no   no  cellular
+##   day month duration campaign pdays previous poutcome   y balance1000  date
+## 1  11   jan      585        1   192        2  success yes         yes 01-11
+## 2  12   jan      409        2    -1        0  unknown yes         yes 01-12
+## 3  12   jan      105        1    -1        0  unknown  no          no 01-12
+## 4  14   jan      517        1   282        4  success yes          no 01-14
+## 5  14   jan      218        3   161        9    other  no          no 01-14
+## 6  14   jan      309        1    91       10  success yes         yes 01-14</code></pre>
 <p><a id="item-two"></a></p>
 </div>
-<div id="data-visualization" class="section level2">
-<h2>Data visualization</h2>
+<div id="data-visualization" class="section level3">
+<h3>Data visualization</h3>
 <p><a id="item-three"></a></p>
 </div>
-<div id="modelling" class="section level2">
-<h2>Modelling</h2>
+<div id="modelling" class="section level3">
+<h3>Modelling</h3>
 </div>
 
 
