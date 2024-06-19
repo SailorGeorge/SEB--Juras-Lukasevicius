@@ -6,10 +6,10 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE) # Removes warning messages
 ```
 
-This task was completed for the **Quantitative Analyst in Credit Risk Model Validation** position in **SEB**. The solution, alongside a description of results and code, are provided in [this repository](https://github.com/SailorGeorge/SEB--Juras-Lukasevicius). The task was completed by **Juras Lukaševičius** using *R*.
+This task was completed for the **Quantitative Analyst in Credit Risk Model Validation** position in **SEB**. The solution, alongside a description of results and code, are provided in [this repository](https://github.com/SailorGeorge/SEB--Juras-Lukasevicius). The task was completed by **Juras Lukaševičius** using *R Studio*.
 
 You can read this code on the *.html* file to use hyperlinks.
 
@@ -65,12 +65,14 @@ Before starting the three given tasks, I load the testing and full data sets int
 ```
 
 ```{r message=FALSE}
- library(dplyr) # For data manipulation
+ library(dplyr)   # For data manipulation
+ library(ggplot2) # For data vizualisation
+ library(pROC)    # For modelling (ROC and AUC)
 ```
 
 **Select a random subsample of data set**
 
-To collect a random subsample from a dataset, I use the function `sample()`. Before generating, I set a custom seed to replicate the sample selection on every initialization. `n` shows the number of rows in the sampled data.
+To collect a random subsample from a dataset, I use the function `sample()` . Before generating, I set a custom seed to replicate the sample selection on every initialization. `n` shows the number of rows in the sampled data.
 
 ```{r }
 set.seed(42)
@@ -82,13 +84,13 @@ head(dt_s)
 
 **Filter desired rows using simple and more complex conditions**
 
-First I will complete a simple filtering by selecting rows with `single` marital status. I will apply this to the sampled data set.
+First I will complete a simple filtering by selecting rows with `single` marital status. I will apply this to the sampled data set, simply selecting rows in which the variable `marital` is equal to the value `single`.
 
 ```{r }
 head(dt_s[dt_s$marital == "single",])
 ```
 
-For a more complex filtering, I will select rows with `single` marital status and balance between $1000$ and $5000$.
+For a more complex filtering, I will select rows with `single` marital status and balance between $1000$ and $5000$. 
 
 ```{r }
 head(dt_s[dt_s$marital == "single" & dt_s$balance >= 1000 & dt_s$balance <= 5000,])
@@ -96,7 +98,7 @@ head(dt_s[dt_s$marital == "single" & dt_s$balance >= 1000 & dt_s$balance <= 5000
 
 **Drop unnecessary variables, rename some variables**
 
-I will drop the date variables and rename the `marital` and `education` variables into their shortened versions `mar` and `edu`.
+I will drop the date variables and rename the `marital` and `education` variables into their shortened versions `mar` and `edu`. 
 
 ```{r }
 dt_s <- subset(dt_s, select = -c(day, month)) 
@@ -108,7 +110,7 @@ head(dt_s)
 
 **Calculate summarizing statistics (for full sample and by categorical variables as well)**
 
-To acquire summarizing statistics for the full sample, I can simply use the function `summary()`. To add summarizing statistics by categorical variables, I can change such variables into factors to see which ones are most frequent. For this, I use the `dplyr` transformation `mutate_if()`.
+To acquire summarizing statistics for the full sample, I can simply use the function `summary()`. To add summarizing statistics by categorical variables, I can change such variables into factors to see which values are most frequent. For this, I use the `dplyr` conditional transformation `mutate_if()`, which finds categorical variables and converts them into factors.
 
 ```{r }
 dt <- dt %>%
@@ -117,18 +119,20 @@ dt <- dt %>%
 summary(dt)
 ```
 
-Here we can find the mean, median, min and max, alongside the first and third quartiles of all numeric variables. For categorical variables, we can see the number of occurrences of each value in the variable. 
+Here we can find the mean, median, min and max, alongside the first and third quartiles of all numeric variables. For categorical variables, we can see the number of occurrences of each value in the variable. This lets us have a general overlook of the data and helps in finding outliers or missing values in the data. In this scenario, the data set sample has no missing values (no `NA`).
 
 **Create new variables using simple transformation and custom functions**
 
-I'll create two variables for the full sample: one will be a simple transformation, which shows if the average yearly balance is above 1000; the other will combine the `month` and `day` variables into one `date` variable using a custom function.
+I'll create two variables for the data set sample: one will be a simple transformation, which shows if the average yearly balance is above 1000; the other will combine the `month` and `day` variables into one `date` variable using a custom function.
+
+To create the balance variable, I use an `ifelse` condition. Value above a $1000$ are given the category `yes`.
 
 ```{r }
 dt <- dt %>%
   mutate(balance1000 = ifelse(balance > 1000, "yes", "no"))
 ```
 
-To create the `date` variable, I first make a function which changes the `month` value into an integer and combines it with the `day` variable. I use the `paste()` function to add a seperator and fit the factorized `month` value into a string.
+To create the `date` variable, I first make a function which changes the `month` value into an integer and combines it with the `day` variable. I use the `paste()` function to add a separator and fit the factorized `month` value into a string. The function with the transformation are provided below.
 
 ```{r }
 mon_day <- function(month, day) {
@@ -167,9 +171,239 @@ head(dt_ord)
 
 ### Data visualization
 
+For the data visualization part, I will make several graphs utilizing both numeric and categorical variables:
 
+- scatter plot of average yearly balance and age;
+- box plots of average yearly balance by education;
+- segmented histogram of marital status by housing loan;
+- pie chart of contact communication type;
+- line chart of average yearly balance by last month of contact.
+
+Below is the **scatter plot of average yearly balance and age**:
+
+```{r }
+ggplot(dt, aes(x=age, y=balance)) +
+  geom_point() +
+  ggtitle("Average yearly balance by age, scatter plot") +
+  xlim(min(dt$age), max(dt$age)) +
+  ylim(min(dt$balance), 45000) + # Lowering y-max, since most values are not
+                                 # that high
+  geom_hline(yintercept = mean(dt$balance), 
+             color = "red",
+             size=1) +
+  annotate("text", x = Inf, y = 5, 
+           label = "Balance mean = 1422.7", 
+           hjust = 1, vjust = -1.5, color = "red") +
+  labs(x = "Age", y = "Average yearly balance, Eur") +
+  theme_minimal()
+
+```
+
+In this graph, we can see that there is no real correlation between average yearly balance and age. We have many similar balances (approximately $1422.7$ Eur) in a wide age demographic, spanning from $19$ to $87$ years of age. The y-axis range has been modified to fit the most common values and hide the outliers. 
+
+
+Below are the **box plots of average yearly balance by education**:
+
+```{r }
+ggplot(dt, aes(x = education, y = balance, fill = education)) +
+  geom_boxplot(outlier.shape = NA, outlier.size = 0) +
+  ggtitle("Average yearly balance in every education, box plots") +
+  labs(x = "Education", y = "Average yearly balance, Eur") +
+  ylim(-1200, 2300) +
+  theme_minimal() +
+  guides(fill = FALSE)
+
+```
+These box plots had many outliers with high average yearly balances, which have been hidden for clarity. When analyzing the box plots you can find, that the median average yearly balance doesn't change dramatically depending on your education status. Also, although the minimum - maximum values differ in every single box plot, they are not big enough to make meaningful insights about.
+
+
+Below is the **segmented histogram of marital status by housing loan**:
+
+```{r }
+ggplot(dt, aes(x=marital, fill = loan)) +
+  geom_bar(aes(y = (..count..)/sum(..count..))) +
+  ggtitle("Marital status segmented by housing loan, histogram") +
+  labs(x = "Marital status", y = "Proportion") +
+  theme_minimal()  +
+  scale_fill_manual(
+    name = "Has a loan?",
+    values = c("indianred", "steelblue"),  
+    labels = c("No", "Yes")            
+  )
+
+```
+In this bar plot we can see that the largest proportion of clients are married, then followed by single and divorced clients. We can also see that, although there are almost as many married clients with housing loans as there are divorced clients, the proportions of clients who have housing loans in each group doesn't change dramatically.
+
+Below is the **pie chart of contact communication type**:
+
+```{r }
+
+# Here I make an additional summary data set with the column `percentage`, 
+# which shows the groups proportion.
+dt_summary <- dt %>%
+  group_by(contact) %>%
+  summarise(count = n()) %>%
+  ungroup() %>%
+  mutate(percentage = count / sum(count) * 100,
+         label = paste0(round(percentage, 1), "%"))
+
+ggplot(dt_summary, aes(x = "", y = count, fill = contact)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar(theta = "y") +
+  labs(title = "Contact communication type, pie chart", fill = "Category") +
+  theme_void() +
+  geom_text(aes(label = label), position = position_stack(vjust = 0.5))
+
+```
+
+This simple pie chart shows the proportion of contact made by communication type. Here we can see that more than half of the contact is made by cellular, almost a third is unknown and just a small proportion is by telephone.
+
+Below is the **line chart of average yearly balance by last month of contact**:
+
+```{r }
+
+# Here I make an additional summary data set with the column `balance`, 
+# which shows average balance by month. The mutate function is used to order
+# the months from January to December.
+dt_summary <- dt %>%
+  group_by(month) %>%
+  summarise(avg_balance = mean(balance)) %>%
+  ungroup() %>%
+  mutate(month = factor(month, levels = c("jan", "feb", "mar", 
+                                          "apr", "may", "jun", 
+                                          "jul", "aug", "sep", 
+                                          "oct", "nov", "dec")))
+
+ggplot(dt_summary, aes(x = month, y = avg_balance, group = 1)) +
+  geom_line() +  # Line plot
+  geom_point() +  # Add points at each month
+  labs(title = "Average yearly balance by month of last contact, line chart", 
+       x = "Month of last contact", y = "Average yearly balance, Eur") +  # Add titles and labels
+  theme_minimal()  # Minimal theme
+
+```
+
+This line chart represents the clients average balance based on month last contacted. Here we can find that in December the clients with the highest balance are contacted most, while on July the clients with the lowest balance are contacted most. 
 
 <a id="item-three"></a>
 
 ### Modelling
 
+In this part, I will complete the modelling task. I rephrased the task as follows:
+
+**Perform a logistic regression to obtain the predicted probability that a customer has subscribed for a term deposit** using relevant **continuous variables and dummy variables created for categorical columns**. The model will be created using a training set and later I will use the testing set to **evaluate model goodness of fit and predictive ability**.
+
+First we will load all the variables to the model and pick out the significant variables. This can be done when inspecting their p-values. I will remove the `date` variable, since it has too many factors and its values are representative of the `month` and `day` columns.
+
+I will choose the variables using the sample data set `dt` and then I'll use the full data set `d` to check how the model performs.
+
+```{r }
+dt_prep <- subset(dt, select=-c(date))
+
+head(dt_prep)
+```
+
+```{r }
+glm <- glm(y ~ .,data = dt_prep, family = 'binomial')
+
+summary(glm)
+```
+
+After getting the model summary I can select the variables which have a p-value lower than a chosen significance (for instance, $\alpha = 0.05$). 
+Such variables are:
+
+- the intercept;
+- `job` - people who are retired affect the outcome;
+- `marital` - married individuals affect the outcome;
+- `contact` - people with unknown forms of contact affect the outcome;
+- `loan` - having a personal loan affects the outcome;
+- `month` - some months have an effect on the outcome;
+- `duration` - last contact duration in seconds has an effect on the outcome;
+- `campaign` - number of contacts performed during this campaign and for this client affect the outcome (**continuous variable**);
+- `pcoutcome` - successful previous marketing campaigns affect the outcome;
+- `balance1000` - individuals with a balance over a 1000 affect the outcome (**created dummy variable**).
+
+Now we will create the complete model using these variables on the full data set. For this we will also split the data into a $80$-$20$ training-testing split. The training set will be used to prepare the model and the testing set will be used to assess its performance.
+
+```{r }
+# --------------------------------------------------------------------------- #
+# These are the same transformations as previously applied to the data sample #
+
+d <- d %>%
+  mutate_if(is.character, as.factor)
+
+d <- d %>%
+  mutate(balance1000 = ifelse(balance > 1000, "yes", "no"))
+
+d <- d %>%
+  mutate(date = mon_day(paste(month), day))
+
+# --------------------------------------------------------------------------- #
+
+d_mod <- subset(d, select=-c(date)) # Removed `date` variable
+
+set.seed(42)
+train_indices <- sample(1:nrow(d_mod), size = 0.8 * nrow(d_mod))
+
+train_data <- d_mod[train_indices, ] # Training data
+test_data <- d_mod[-train_indices, ] # Testing data
+```
+
+```{r }
+
+
+glm2 <- glm(y ~ 1 + job + marital + contact + loan + month + 
+               duration + campaign + poutcome + balance1000,
+               data = train_data, family = 'binomial')
+
+glm_test <- glm(y ~ .,
+                data = train_data, family = 'binomial')
+
+summary(glm2)         # Selected model AIC
+summary(glm_test)$aic # All variables model AIC
+
+```
+
+After selecting our variables, we can see that the AIC value, which is a measure of the relative quality of a statistical model for a given data set, rises from $17302.17$ to $17507$. Although this isn't a huge gap, it does shows that the general model with all variables is better, but not by a lot.
+
+Finally, to evaluate model goodness of fit and predictive ability, we will create a confusion matrix and check the models predictive capabilities.
+
+
+```{r }
+glm_pred <- predict(glm2, test_data, type = 'response')
+
+conf_matrix <- table(as.numeric(glm_pred>0.5), test_data$y)
+rownames(conf_matrix) <- c("no", "yes")
+cat("Confusion matrix:")
+print(conf_matrix)
+
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+cat("Accuracy:", accuracy, "\n")
+
+precision <- diag(conf_matrix) / rowSums(conf_matrix)
+cat("Precision:", precision, "\n")
+
+recall <- diag(conf_matrix) / colSums(conf_matrix)
+cat("Recall:", recall, "\n")
+
+f1 <- 2 * (precision * recall) / (precision + recall)
+cat("F1-score:", f1, "\n")
+
+```
+
+The confusion matrix shows us how many values have been predicted correctly. Since the confusion matrix itself is difficult to interpret, we can utilize metrics like accuracy, precision, recall and F1 to assess the model's utility.
+
+Here we find that the accuracy of the model is very high - almost $90\%$, meaning that the model predicts the *y* variable $9$ out of $10$ times. Precision shows that the model predicts the negative class better than the positive, meaning that $91.8\%$ of negative classes will be predicted correctly, compared to the $64.8\%$ of positive classes. Recall highlights whether the model can find all the instances of the given class. It is important if you are trying to avoid false positives or false negatives. In this case, the recall for the negative class is great - $97.5\%$, but it's far lower for the positive class - only $33.7\%$. The F1 score combines both recall and precision and shows their harmonic mean.
+
+After the confusion matrix, I will additionally explore the ROC curve and its AUC value, to inspect model accuracy. To draw an ROC curve I use the library `pROC`.
+
+```{r }
+roc_curve <- roc(test_data$y, glm_pred)
+plot(roc_curve)
+auc(roc_curve)
+
+```
+
+From this curve and, more notably, from the high AUC (area under curve) value of $90.8\%$ we can see that the model performs well under the testing data and shows high accuracy.
+
+### That is all. Thank you for reading!
