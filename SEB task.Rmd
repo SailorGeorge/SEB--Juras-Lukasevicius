@@ -1,7 +1,7 @@
 ---
 title: "SEB task"
 author: "Juras Lukaševičius"
-date: "2024-06-14"
+date: "2024-06-20"
 output: html_document
 ---
 
@@ -66,7 +66,7 @@ Before starting the three given tasks, I load the testing and full data sets int
 
 ```{r message=FALSE}
  library(dplyr)   # For data manipulation
- library(ggplot2) # For data vizualisation
+ library(ggplot2) # For data visualization
  library(pROC)    # For modelling (ROC and AUC)
 ```
 
@@ -214,7 +214,8 @@ ggplot(dt, aes(x = education, y = balance, fill = education)) +
   guides(fill = FALSE)
 
 ```
-These box plots had many outliers with high average yearly balances, which have been hidden for clarity. When analyzing the box plots you can find, that the median average yearly balance doesn't change dramatically depending on your education status. Also, although the minimum - maximum values differ in every single box plot, they are not big enough to make meaningful insights about.
+
+These box plots had many outliers with high average yearly balances, which have been hidden for clarity. When analyzing the box plots you can find that the median average yearly balance doesn't change dramatically depending on your education status. Also, although the minimum - maximum values differ in every single box plot, they are not big enough to make meaningful insights about.
 
 
 Below is the **segmented histogram of marital status by housing loan**:
@@ -232,7 +233,8 @@ ggplot(dt, aes(x=marital, fill = loan)) +
   )
 
 ```
-In this bar plot we can see that the largest proportion of clients are married, then followed by single and divorced clients. We can also see that, although there are almost as many married clients with housing loans as there are divorced clients, the proportions of clients who have housing loans in each group doesn't change dramatically.
+
+In this histogram we can see that the largest proportion of clients are married, then followed by single and divorced clients. We can also see that, although there are almost as many married clients with housing loans as there are divorced clients, the proportions of clients who have housing loans in each group doesn't change dramatically.
 
 Below is the **pie chart of contact communication type**:
 
