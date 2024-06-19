@@ -1,6 +1,8 @@
 # SEB task
 
-This task was completed for the **Quantitative Analyst in Credit Risk Model Validation** position in **SEB**. The solution, alongside a description of results and code, are provided in this repository. The task was completed by **Juras Lukaševičius** using *R*.
+This task was completed for the **Quantitative Analyst in Credit Risk Model Validation** position in **SEB**. The solution, alongside a description of results and code, are provided in this repository. The task was completed by **Juras Lukaševičius** using *R Studio*.
+
+You can read this code on the *.html* file to use hyperlinks.
 
 Thanks for reading!
 
